@@ -1,0 +1,140 @@
+import { useEffect, useMemo, useState } from 'react';
+
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState([]);
+  const [error, setError] = useState(null);
+  const [sort, setSort] = useState({ key: 'firstname', dir: 'asc' });
+
+  
+  const [firstFilter, setFirstFilter] = useState('');
+  const [lastFilter, setLastFilter] = useState('');
+  const [emailFilter, setEmailFilter] = useState('');
+  const [cityFilter, setCityFilter] = useState('');
+
+  useEffect(() => {
+    fetch('https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers')
+      .then(res => res.json())
+      .then(json => setCustomers(json._embedded.customers))
+      .catch(err => setError(String(err)));
+  }, []);
+
+  function toggleSort(key) {
+    setSort(prev =>
+      prev.key === key
+        ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+        : { key, dir: 'asc' }
+    );
+  }
+
+  const sorted = useMemo(() => {
+    const arr = [...customers];
+    arr.sort((a, b) => {
+      const va = (a[sort.key] ?? '').toString().toLowerCase();
+      const vb = (b[sort.key] ?? '').toString().toLowerCase();
+      if (va < vb) return sort.dir === 'asc' ? -1 : 1;
+      if (va > vb) return sort.dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [customers, sort]);
+
+  const filtered = useMemo(() => {
+    const f = firstFilter.trim().toLowerCase();
+    const l = lastFilter.trim().toLowerCase();
+    const e = emailFilter.trim().toLowerCase();
+    const c = cityFilter.trim().toLowerCase();
+
+    return sorted.filter(x => {
+      const firstOk = !f || (x.firstname ?? '').toLowerCase().includes(f);
+      const lastOk  = !l || (x.lastname ?? '').toLowerCase().includes(l);
+      const emailOk = !e || (x.email ?? '').toLowerCase().includes(e);
+      const cityOk  = !c || (x.city ?? '').toLowerCase().includes(c);
+      return firstOk && lastOk && emailOk && cityOk;
+    });
+  }, [sorted, firstFilter, lastFilter, emailFilter, cityFilter]);
+
+  if (error) return <p style={{ padding: 16 }}>Virhe: {error}</p>;
+  if (!customers.length) return <p style={{ padding: 16 }}>Ladataan…</p>;
+
+  const thStyle = { cursor: 'pointer', userSelect: 'none' };
+  const arrow = k => (sort.key === k ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '');
+
+  return (
+    <div style={{ padding: 16 }}>
+      <h2>Customers</h2>
+
+      
+      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', margin: '8px 0 16px' }}>
+        <label>
+          {' '}
+          <input
+            value={firstFilter}
+            onChange={e => setFirstFilter(e.target.value)}
+            placeholder="Type firstname..."
+          />
+        </label>
+        <label>
+          {' '}
+          <input
+            value={lastFilter}
+            onChange={e => setLastFilter(e.target.value)}
+            placeholder="Type lastname..."
+          />
+        </label>
+        <label>
+          {' '}
+          <input
+            value={emailFilter}
+            onChange={e => setEmailFilter(e.target.value)}
+            placeholder="Type email..."
+          />
+        </label>
+        <label>
+          {' '}
+          <input
+            value={cityFilter}
+            onChange={e => setCityFilter(e.target.value)}
+            placeholder="Type city..."
+          />
+        </label>
+      </div>
+
+      <table
+        border="1"
+        cellPadding="6"
+        style={{ borderCollapse: 'collapse', width: '100%' }}
+      >
+        <thead>
+          <tr>
+            <th style={thStyle} onClick={() => toggleSort('firstname')}>
+              Firstname{arrow('firstname')}
+            </th>
+            <th style={thStyle} onClick={() => toggleSort('lastname')}>
+              Lastname{arrow('lastname')}
+            </th>
+            <th style={thStyle} onClick={() => toggleSort('email')}>
+              Email{arrow('email')}
+            </th>
+            <th style={thStyle} onClick={() => toggleSort('phone')}>
+              Phone{arrow('phone')}
+            </th>
+            <th style={thStyle} onClick={() => toggleSort('city')}>
+              City{arrow('city')}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((c, i) => (
+            <tr key={i}>
+              <td>{c.firstname}</td>
+              <td>{c.lastname}</td>
+              <td>{c.email}</td>
+              <td>{c.phone}</td>
+              <td>{c.city}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
