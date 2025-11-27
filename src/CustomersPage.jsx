@@ -5,11 +5,20 @@ export default function CustomersPage() {
   const [error, setError] = useState(null);
   const [sort, setSort] = useState({ key: 'firstname', dir: 'asc' });
 
-  
   const [firstFilter, setFirstFilter] = useState('');
   const [lastFilter, setLastFilter] = useState('');
   const [emailFilter, setEmailFilter] = useState('');
   const [cityFilter, setCityFilter] = useState('');
+
+  const [newCustomer, setNewCustomer] = useState({
+    firstname: '',
+    lastname: '',
+    streetaddress: '',
+    postcode: '',
+    city: '',
+    email: '',
+    phone: ''
+  });
 
   useEffect(() => {
     fetch('https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers')
@@ -24,6 +33,40 @@ export default function CustomersPage() {
         ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
         : { key, dir: 'asc' }
     );
+  }
+
+  function handleNewCustomerChange(e) {
+    const { name, value } = e.target;
+    setNewCustomer(prev => ({ ...prev, [name]: value }));
+  }
+
+  async function handleNewCustomerSubmit(e) {
+    e.preventDefault();
+    try {
+      const res = await fetch('https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCustomer)
+      });
+      if (!res.ok) {
+        throw new Error('Asiakkaan lisäys epäonnistui');
+      }
+      setNewCustomer({
+        firstname: '',
+        lastname: '',
+        streetaddress: '',
+        postcode: '',
+        city: '',
+        email: '',
+        phone: ''
+      });
+      const listRes = await fetch('https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers');
+      const json = await listRes.json();
+      setCustomers(json._embedded.customers);
+      setError(null);
+    } catch (err) {
+      alert('Asiakkaan lisäys epäonnistui');
+    }
   }
 
   const sorted = useMemo(() => {
@@ -46,9 +89,9 @@ export default function CustomersPage() {
 
     return sorted.filter(x => {
       const firstOk = !f || (x.firstname ?? '').toLowerCase().includes(f);
-      const lastOk  = !l || (x.lastname ?? '').toLowerCase().includes(l);
+      const lastOk = !l || (x.lastname ?? '').toLowerCase().includes(l);
       const emailOk = !e || (x.email ?? '').toLowerCase().includes(e);
-      const cityOk  = !c || (x.city ?? '').toLowerCase().includes(c);
+      const cityOk = !c || (x.city ?? '').toLowerCase().includes(c);
       return firstOk && lastOk && emailOk && cityOk;
     });
   }, [sorted, firstFilter, lastFilter, emailFilter, cityFilter]);
@@ -63,10 +106,76 @@ export default function CustomersPage() {
     <div style={{ padding: 16 }}>
       <h2>Customers</h2>
 
-      
-      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', margin: '8px 0 16px' }}>
+      <form
+        onSubmit={handleNewCustomerSubmit}
+        style={{
+          display: 'grid',
+          gap: 8,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          margin: '8px 0 16px'
+        }}
+      >
+        <input
+          name="firstname"
+          value={newCustomer.firstname}
+          onChange={handleNewCustomerChange}
+          placeholder="Firstname"
+          required
+        />
+        <input
+          name="lastname"
+          value={newCustomer.lastname}
+          onChange={handleNewCustomerChange}
+          placeholder="Lastname"
+          required
+        />
+        <input
+          name="email"
+          value={newCustomer.email}
+          onChange={handleNewCustomerChange}
+          placeholder="Email"
+          required
+        />
+        <input
+          name="phone"
+          value={newCustomer.phone}
+          onChange={handleNewCustomerChange}
+          placeholder="Phone"
+          required
+        />
+        <input
+          name="streetaddress"
+          value={newCustomer.streetaddress}
+          onChange={handleNewCustomerChange}
+          placeholder="Street address"
+          required
+        />
+        <input
+          name="postcode"
+          value={newCustomer.postcode}
+          onChange={handleNewCustomerChange}
+          placeholder="Postcode"
+          required
+        />
+        <input
+          name="city"
+          value={newCustomer.city}
+          onChange={handleNewCustomerChange}
+          placeholder="City"
+          required
+        />
+        <button type="submit">Lisää asiakas</button>
+      </form>
+
+      <div
+        style={{
+          display: 'grid',
+          gap: 8,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          margin: '8px 0 16px'
+        }}
+      >
         <label>
-          {' '}
           <input
             value={firstFilter}
             onChange={e => setFirstFilter(e.target.value)}
@@ -74,7 +183,6 @@ export default function CustomersPage() {
           />
         </label>
         <label>
-          {' '}
           <input
             value={lastFilter}
             onChange={e => setLastFilter(e.target.value)}
@@ -82,7 +190,6 @@ export default function CustomersPage() {
           />
         </label>
         <label>
-          {' '}
           <input
             value={emailFilter}
             onChange={e => setEmailFilter(e.target.value)}
@@ -90,7 +197,6 @@ export default function CustomersPage() {
           />
         </label>
         <label>
-          {' '}
           <input
             value={cityFilter}
             onChange={e => setCityFilter(e.target.value)}
