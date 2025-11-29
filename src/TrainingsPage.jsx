@@ -89,13 +89,13 @@ export default function TrainingsPage() {
 
   return (
     <div style={{ padding: 16 }}>
-      <h2>Trainings</h2>
+      <h2>Harjoitukset</h2>
 
       <div style={{ margin: '8px 0 16px' }}>
         <input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          placeholder="Filter by customer name..."
+          placeholder="Suodata nimellä..."
           style={{ width: '100%', maxWidth: 300 }}
         />
       </div>
@@ -108,16 +108,16 @@ export default function TrainingsPage() {
         <thead>
           <tr>
             <th style={thStyle} onClick={() => toggleSort('date')}>
-              Date{arrow('date')}
+              Päivämäärä{arrow('date')}
             </th>
             <th style={thStyle} onClick={() => toggleSort('duration')}>
-              Duration (min){arrow('duration')}
+              Kesto (min){arrow('duration')}
             </th>
             <th style={thStyle} onClick={() => toggleSort('activity')}>
-              Activity{arrow('activity')}
+              Aktiviteetti{arrow('activity')}
             </th>
-            <th style={thStyle}>Customer</th>
-            <th>Actions</th>
+            <th style={thStyle}>Asiakas</th>
+            <th>Toiminnot</th>
           </tr>
         </thead>
         <tbody>
@@ -129,7 +129,7 @@ export default function TrainingsPage() {
               <td>
                 {t.customer
                   ? `${t.customer.firstname} ${t.customer.lastname}`
-                  : 'Unknown'}
+                  : 'Tuntematon'}
               </td>
               <td>
                 <button onClick={() => handleDeleteTraining(t)}>Poista</button>

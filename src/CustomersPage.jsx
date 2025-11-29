@@ -44,7 +44,9 @@ export default function CustomersPage() {
 
   async function loadCustomers() {
     try {
-      const res = await fetch('https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers');
+      const res = await fetch(
+        'https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers'
+      );
       const json = await res.json();
       setCustomers(json._embedded.customers);
     } catch (err) {
@@ -68,11 +70,14 @@ export default function CustomersPage() {
   async function handleNewCustomerSubmit(e) {
     e.preventDefault();
     try {
-      await fetch('https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCustomer)
-      });
+      await fetch(
+        'https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/customers',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCustomer)
+        }
+      );
       setNewCustomer({
         firstname: '',
         lastname: '',
@@ -157,16 +162,19 @@ export default function CustomersPage() {
     e.preventDefault();
     try {
       const iso = new Date(trainingForm.date).toISOString();
-      await fetch('https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/trainings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: iso,
-          duration: Number(trainingForm.duration),
-          activity: trainingForm.activity,
-          customer: trainingFor
-        })
-      });
+      await fetch(
+        'https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api/trainings',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: iso,
+            duration: Number(trainingForm.duration),
+            activity: trainingForm.activity,
+            customer: trainingFor
+          })
+        }
+      );
       setTrainingFor(null);
     } catch {
       alert('Treeniä ei voitu tallentaa');
@@ -174,7 +182,16 @@ export default function CustomersPage() {
   }
 
   const sorted = useMemo(() => {
-    const arr = [...customers];
+    const nonEmpty = customers.filter(c => {
+      const f = (c.firstname ?? '').trim();
+      const l = (c.lastname ?? '').trim();
+      const e = (c.email ?? '').trim();
+      const p = (c.phone ?? '').trim();
+      const ci = (c.city ?? '').trim();
+      return f || l || e || p || ci;
+    });
+
+    const arr = [...nonEmpty];
     arr.sort((a, b) => {
       const va = (a[sort.key] ?? '').toLowerCase();
       const vb = (b[sort.key] ?? '').toLowerCase();
@@ -202,8 +219,8 @@ export default function CustomersPage() {
   if (error) return <p style={{ padding: 16 }}>Virhe: {error}</p>;
 
   return (
-    <div style={{ padding: 16, backgroundColor: 'red', minHeight: '100vh' }}>
-      <h2>Customers</h2>
+    <div style={{ padding: 16, minHeight: '100vh' }}>
+      <h2>Asiakkaat</h2>
 
       <form
         onSubmit={handleNewCustomerSubmit}
@@ -211,16 +228,58 @@ export default function CustomersPage() {
           display: 'grid',
           gap: 8,
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          margin: '8px 0 16px'
+          margin: '8px 0 24px'
         }}
       >
-        <input name="firstname" value={newCustomer.firstname} onChange={handleNewCustomerChange} placeholder="Firstname" required />
-        <input name="lastname" value={newCustomer.lastname} onChange={handleNewCustomerChange} placeholder="Lastname" required />
-        <input name="email" value={newCustomer.email} onChange={handleNewCustomerChange} placeholder="Email" required />
-        <input name="phone" value={newCustomer.phone} onChange={handleNewCustomerChange} placeholder="Phone" required />
-        <input name="streetaddress" value={newCustomer.streetaddress} onChange={handleNewCustomerChange} placeholder="Street address" required />
-        <input name="postcode" value={newCustomer.postcode} onChange={handleNewCustomerChange} placeholder="Postcode" required />
-        <input name="city" value={newCustomer.city} onChange={handleNewCustomerChange} placeholder="City" required />
+        <input
+          name="firstname"
+          value={newCustomer.firstname}
+          onChange={handleNewCustomerChange}
+          placeholder="Etunimi"
+          required
+        />
+        <input
+          name="lastname"
+          value={newCustomer.lastname}
+          onChange={handleNewCustomerChange}
+          placeholder="Sukunimi"
+          required
+        />
+        <input
+          name="email"
+          value={newCustomer.email}
+          onChange={handleNewCustomerChange}
+          placeholder="Sähköposti"
+          required
+        />
+        <input
+          name="phone"
+          value={newCustomer.phone}
+          onChange={handleNewCustomerChange}
+          placeholder="Puhelin"
+          required
+        />
+        <input
+          name="streetaddress"
+          value={newCustomer.streetaddress}
+          onChange={handleNewCustomerChange}
+          placeholder="Katuosoite"
+          required
+        />
+        <input
+          name="postcode"
+          value={newCustomer.postcode}
+          onChange={handleNewCustomerChange}
+          placeholder="Postinumero"
+          required
+        />
+        <input
+          name="city"
+          value={newCustomer.city}
+          onChange={handleNewCustomerChange}
+          placeholder="Kaupunki"
+          required
+        />
         <button type="submit">Lisää asiakas</button>
       </form>
 
@@ -229,42 +288,122 @@ export default function CustomersPage() {
           display: 'grid',
           gap: 8,
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          margin: '8px 0 16px'
+          margin: '0 0 24px'
         }}
       >
-        <input value={firstFilter} onChange={e => setFirstFilter(e.target.value)} placeholder="Type firstname..." />
-        <input value={lastFilter} onChange={e => setLastFilter(e.target.value)} placeholder="Type lastname..." />
-        <input value={emailFilter} onChange={e => setEmailFilter(e.target.value)} placeholder="Type email..." />
-        <input value={cityFilter} onChange={e => setCityFilter(e.target.value)} placeholder="Type city..." />
+        <input
+          value={firstFilter}
+          onChange={e => setFirstFilter(e.target.value)}
+          placeholder="Suodata etunimellä..."
+        />
+        <input
+          value={lastFilter}
+          onChange={e => setLastFilter(e.target.value)}
+          placeholder="Suodata sukunimellä..."
+        />
+        <input
+          value={emailFilter}
+          onChange={e => setEmailFilter(e.target.value)}
+          placeholder="Suodata sähköpostilla..."
+        />
+        <input
+          value={cityFilter}
+          onChange={e => setCityFilter(e.target.value)}
+          placeholder="Suodata kaupungilla..."
+        />
       </div>
 
-      <table border="1" cellPadding="6" style={{ borderCollapse: 'collapse', width: '100%' }}>
+      <table
+        border="1"
+        cellPadding="6"
+        style={{ borderCollapse: 'collapse', width: '100%' }}
+      >
         <thead>
           <tr>
-            <th onClick={() => toggleSort('firstname')} style={{ cursor: 'pointer' }}>Firstname</th>
-            <th onClick={() => toggleSort('lastname')} style={{ cursor: 'pointer' }}>Lastname</th>
-            <th onClick={() => toggleSort('email')} style={{ cursor: 'pointer' }}>Email</th>
-            <th onClick={() => toggleSort('phone')} style={{ cursor: 'pointer' }}>Phone</th>
-            <th onClick={() => toggleSort('city')} style={{ cursor: 'pointer' }}>City</th>
-            <th>Actions</th>
+            <th
+              onClick={() => toggleSort('firstname')}
+              style={{ cursor: 'pointer' }}
+            >
+              Etunimi
+            </th>
+            <th
+              onClick={() => toggleSort('lastname')}
+              style={{ cursor: 'pointer' }}
+            >
+              Sukunimi
+            </th>
+            <th
+              onClick={() => toggleSort('email')}
+              style={{ cursor: 'pointer' }}
+            >
+              Sähköposti
+            </th>
+            <th
+              onClick={() => toggleSort('phone')}
+              style={{ cursor: 'pointer' }}
+            >
+              Puhelin
+            </th>
+            <th
+              onClick={() => toggleSort('city')}
+              style={{ cursor: 'pointer' }}
+            >
+              Kaupunki
+            </th>
+            <th>Toiminnot</th>
           </tr>
         </thead>
         <tbody>
-          {filtered.map((c, i) => {
-            const edit = editingHref === c._links.self.href;
-            const addTraining = trainingFor === c._links.self.href;
+          {filtered.map((c) => {
+            const key = c._links.self.href;
+            const edit = editingHref === key;
+            const addTraining = trainingFor === key;
 
             if (edit) {
               return (
-                <tr key={i}>
-                  <td><input name="firstname" value={editCustomer.firstname} onChange={handleEditCustomerChange} /></td>
-                  <td><input name="lastname" value={editCustomer.lastname} onChange={handleEditCustomerChange} /></td>
-                  <td><input name="email" value={editCustomer.email} onChange={handleEditCustomerChange} /></td>
-                  <td><input name="phone" value={editCustomer.phone} onChange={handleEditCustomerChange} /></td>
-                  <td><input name="city" value={editCustomer.city} onChange={handleEditCustomerChange} /></td>
+                <tr key={key}>
                   <td>
-                    <button onClick={() => saveEditCustomer(c._links.self.href)}>Tallenna</button>
-                    <button onClick={cancelEditCustomer}>Peruuta</button>
+                    <input
+                      name="firstname"
+                      value={editCustomer.firstname}
+                      onChange={handleEditCustomerChange}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      name="lastname"
+                      value={editCustomer.lastname}
+                      onChange={handleEditCustomerChange}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      name="email"
+                      value={editCustomer.email}
+                      onChange={handleEditCustomerChange}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      name="phone"
+                      value={editCustomer.phone}
+                      onChange={handleEditCustomerChange}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      name="city"
+                      value={editCustomer.city}
+                      onChange={handleEditCustomerChange}
+                    />
+                  </td>
+                  <td>
+                    <button onClick={() => saveEditCustomer(key)}>
+                      Tallenna
+                    </button>
+                    <button type="button" onClick={cancelEditCustomer}>
+                      Peruuta
+                    </button>
                   </td>
                 </tr>
               );
@@ -272,7 +411,7 @@ export default function CustomersPage() {
 
             return (
               <>
-                <tr key={i}>
+                <tr key={key}>
                   <td>{c.firstname}</td>
                   <td>{c.lastname}</td>
                   <td>{c.email}</td>
@@ -280,8 +419,12 @@ export default function CustomersPage() {
                   <td>{c.city}</td>
                   <td>
                     <button onClick={() => startEditCustomer(c)}>Muokkaa</button>
-                    <button onClick={() => handleDeleteCustomer(c)}>Poista</button>
-                    <button onClick={() => openTrainingForm(c)}>Lisää treeni</button>
+                    <button onClick={() => handleDeleteCustomer(c)}>
+                      Poista
+                    </button>
+                    <button onClick={() => openTrainingForm(c)}>
+                      Lisää treeni
+                    </button>
                   </td>
                 </tr>
 
@@ -293,7 +436,8 @@ export default function CustomersPage() {
                         style={{
                           display: 'grid',
                           gap: 8,
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                          gridTemplateColumns:
+                            'repeat(auto-fit, minmax(220px, 1fr))',
                           marginTop: 10
                         }}
                       >
@@ -309,18 +453,20 @@ export default function CustomersPage() {
                           type="number"
                           value={trainingForm.duration}
                           onChange={handleTrainingChange}
-                          placeholder="Duration (min)"
+                          placeholder="Kesto (min)"
                           required
                         />
                         <input
                           name="activity"
                           value={trainingForm.activity}
                           onChange={handleTrainingChange}
-                          placeholder="Activity"
+                          placeholder="Aktiviteetti"
                           required
                         />
                         <button type="submit">Tallenna</button>
-                        <button type="button" onClick={cancelTraining}>Sulje</button>
+                        <button type="button" onClick={cancelTraining}>
+                          Sulje
+                        </button>
                       </form>
                     </td>
                   </tr>
