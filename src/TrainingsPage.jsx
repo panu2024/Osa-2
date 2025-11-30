@@ -141,3 +141,4 @@ export default function TrainingsPage() {
     </div>
   );
 }
+// GPT:tä käytettiin apuna rakenteen suunnittelussa ja virheiden ratkaisemisessa.
