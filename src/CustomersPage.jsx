@@ -479,3 +479,4 @@ export default function CustomersPage() {
     </div>
   );
 }
+// GPT:tä käytettiin apuna rakenteen suunnittelussa ja virheiden ratkaisemisessa.
